@@ -11,26 +11,4 @@ public class EntryManager
 
         return entries;
     }
-
-    public static Dictionary<string, List<Entry>> MergeTimeEntriesByDescription(IEnumerable<Entry> entries)
-    {
-        var mergedEntries = new Dictionary<string, List<Entry>>();
-
-        entries.ToList().ForEach(e =>
-        {
-            List<Entry>? times;
-            if (mergedEntries.TryGetValue(e.Description, out times))
-            {
-                Console.WriteLine("used trygetvalue block");
-                mergedEntries[e.Description].Add(e);
-            }
-            else
-            {
-                Console.WriteLine("used new list block");
-                mergedEntries[e.Description] = new List<Entry> { e };
-            }
-        });
-
-        return mergedEntries;
-    }
 }
