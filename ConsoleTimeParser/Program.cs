@@ -27,12 +27,12 @@ const string unifiedPattern = @"\[(.*?)\] (.*)";
 lines.ToList().ForEach(l =>
 {
     if (l == "") return;
-    
+
     var groups = Regex.Match(l, unifiedPattern).Groups;
-    
+
     // ignore lines that don't have time data. this is dirty but Good Enough for my needs.
     if (groups.Count == 1) return;
-    
+
     var time = groups[1].Value;
     string description;
     var project = "";
@@ -80,13 +80,13 @@ dates.ForEach(d =>
             .Aggregate((t1, t2) => t1 + t2);
 
         Console.WriteLine($"  {p} - {totalTime.Hours}:{totalTime.Minutes:00}");
-        
+
         // also, for informational purposes, break down the entries per-project.
         timeEntries
             .Where(te => te.EntryDate == d && te.Project == p)
             .ToList()
             .ForEach(te => Console.WriteLine($"    {te.Description} - {te.ElapsedTime().Hours}:{te.ElapsedTime().Minutes:00}"));
     });
-    
+
     Console.WriteLine("");
 });

@@ -15,7 +15,7 @@ public class EntryManager
     public static Dictionary<string, List<Entry>> MergeTimeEntriesByDescription(IEnumerable<Entry> entries)
     {
         var mergedEntries = new Dictionary<string, List<Entry>>();
-        
+
         entries.ToList().ForEach(e =>
         {
             List<Entry>? times;
