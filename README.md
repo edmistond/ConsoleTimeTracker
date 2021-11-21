@@ -26,15 +26,29 @@ And you run `ConsoleTimeParser --file=timedata.txt`, you get:
 
 You could theoretically break this down to more granularity, but
 **currently** I bill everything to a single bucket of time per
-customer/project and not down to the individual task level, so it's
-sufficient to be able to say I spent 8 hours gnarfling the garthok
-on project 1.
+customer/project and not at the individual task level, so it's
+sufficient to be able to say I spent 8 hours on project 1.
 
 Times need to be `[bracketed]` so the regex will pick them up.
 Projects are indicated by `projectname.` after the time. Any entries
 without a project get dropped so this is mostly for taking things
 like lunch or doctors' appointments out of my day.
 
+The end of a day should be denoted with `[TIMESTAMP] *` - this gives
+the logic a final timestamp to use to end the previous task. All of
+those entries get dropped from the generated time rollup.
+
+Also, lines that don't match the regex group get ignored, so you
+can add comments or other notes in between entries.
+
+I maintain the text file in Visual Studio Code and just use the
+"insert timestamp" feature there. It's just a text file so you
+can also easily make manual adjustments.
+
 ## Roadmap
 
-- To be written
+There isn't one, this isn't meant to be a sophisticated tool, just
+a handy little utility where I can fix the data file easily if it
+starts throwing errors. I wrote it because I was annoyed by how
+much mental friction keeping track of time worked required, but I 
+have to do it since I work as a consultant.
