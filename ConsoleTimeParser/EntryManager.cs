@@ -21,10 +21,12 @@ public class EntryManager
             List<Entry>? times;
             if (mergedEntries.TryGetValue(e.Description, out times))
             {
+                Console.WriteLine("used trygetvalue block");
                 mergedEntries[e.Description].Add(e);
             }
             else
             {
+                Console.WriteLine("used new list block");
                 mergedEntries[e.Description] = new List<Entry> { e };
             }
         });

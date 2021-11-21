@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Net;
+using System.Text.RegularExpressions;
 using ConsoleTimeParser;
 
 if (args.Length == 0)
@@ -21,35 +22,71 @@ else
 var lines = await File.ReadAllLinesAsync(fileName);
 var timeEntries = new List<Entry>();
 
-string timePattern = @"\[(.*?)\]";
-string descriptionPattern = @"\] (.*)";
+const string unifiedPattern = @"\[(.*?)\] (.*)";
 
 lines.ToList().ForEach(l =>
 {
-    var time = Regex.Match(l, timePattern).Groups[1].Value;
-    var description = Regex.Match(l, descriptionPattern).Groups[1].Value;
-    timeEntries.Add(new Entry(time, description));
+    if (l == "") return;
+    
+    var groups = Regex.Match(l, unifiedPattern).Groups;
+    
+    // ignore lines that don't have time data. this is dirty but Good Enough for my needs.
+    if (groups.Count == 1) return;
+    
+    var time = groups[1].Value;
+    string description;
+    var project = "";
+    if (groups[2].Value.Contains('.'))
+    {
+        var split = groups[2].Value.Split('.');
+        project = split[0];
+        description = split[1];
+    }
+    else
+    {
+        description = groups[2].Value;
+    }
+
+    timeEntries.Add(new Entry(time, description, project));
 });
 
-var updatedEntries = EntryManager.ProcessTimeEntries(timeEntries);
+timeEntries = EntryManager.ProcessTimeEntries(timeEntries);
 
-var mergedEntries = EntryManager.MergeTimeEntriesByDescription(updatedEntries.Where(e => e.Description != "*" && e.Description != "lunch"));
+var dates = timeEntries
+    .Where(te => te.Description != "*")
+    .Select(te => te.EntryDate)
+    .Distinct()
+    .OrderBy(d => d)
+    .ToList();
 
-mergedEntries.Keys.ToList().ForEach(k =>
+// this is hideously inefficient, but since I'm doing one-file-per-week and rarely expect to have more than
+// 50 or so entries in a file, the performance is more than acceptable.
+dates.ForEach(d =>
 {
-    Console.WriteLine(k);
-    mergedEntries[k]
-        .Select(e => new { Date = e.StartDate.ToShortDateString(), Elapsed = e.ElapsedTime() })
-        .GroupBy(e => e.Date)
-        .Select(q =>
-        {
-            return new
-            {
-                Date = q.Key, TotalTime = q.Select(q => q.Elapsed).Aggregate((e1, e2) => e1 + e2)
-            };
-        })
-        .ToList()
-        .ForEach(z => Console.WriteLine($"\t{z.Date} - {z.TotalTime}"));
+    Console.WriteLine(d);
+    // get all projects for a given entry date
+    var projects = timeEntries
+        .Where(te => te.EntryDate == d && te.Project != string.Empty)
+        .Select(te => te.Project)
+        .Distinct()
+        .ToList();
 
+    // summarize total time per-project for a given date
+    projects.ForEach(p =>
+    {
+        var totalTime = timeEntries
+            .Where(te => te.EntryDate == d && te.Project == p)
+            .Select(te => te.ElapsedTime())
+            .Aggregate((t1, t2) => t1 + t2);
+
+        Console.WriteLine($"  {p} - {totalTime.Hours}:{totalTime.Minutes:00}");
+        
+        // also, for informational purposes, break down the entries per-project.
+        timeEntries
+            .Where(te => te.EntryDate == d && te.Project == p)
+            .ToList()
+            .ForEach(te => Console.WriteLine($"    {te.Description} - {te.ElapsedTime().Hours}:{te.ElapsedTime().Minutes:00}"));
+    });
+    
     Console.WriteLine("");
 });
