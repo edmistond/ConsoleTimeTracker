@@ -1,5 +1,4 @@
-﻿using System.Net;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 using ConsoleTimeParser;
 
 if (args.Length == 0)
@@ -12,6 +11,10 @@ string fileName = string.Empty;
 if (args[0].StartsWith("--file"))
 {
     fileName = args[0].Split('=')[1];
+}
+else if (File.Exists(args[0]))
+{
+    fileName = args[0];
 }
 else
 {
